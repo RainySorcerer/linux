@@ -2639,7 +2639,6 @@ static int amdgpu_pmops_freeze(struct device *dev)
 	struct amdgpu_device *adev = drm_to_adev(drm_dev);
 	int r;
 
-	adev->in_s4 = true;
 	r = amdgpu_device_suspend(drm_dev, true);
 	adev->in_s4 = false;
 	if (r)
@@ -3077,6 +3076,11 @@ static int __init amdgpu_init(void)
 
 	/* Ignore KFD init failures. Normal when CONFIG_HSA_AMD is not set. */
 	amdgpu_amdkfd_init();
+
+	if (amdgpu_pp_feature_mask & PP_OVERDRIVE_MASK) {
+		add_taint(TAINT_CPU_OUT_OF_SPEC, LOCKDEP_STILL_OK);
+		pr_crit("Overdrive is enabled, please disable it before reporting any bugs.\n");
+	}
 
 	/* let modprobe override vga console setting */
 	return pci_register_driver(&amdgpu_kms_pci_driver);
